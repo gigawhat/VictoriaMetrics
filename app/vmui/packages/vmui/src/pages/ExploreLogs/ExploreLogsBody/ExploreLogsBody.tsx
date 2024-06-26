@@ -19,7 +19,6 @@ import { marked } from "marked";
 
 export interface ExploreLogBodyProps {
   data: Logs[];
-  loaded?: boolean;
   markdownParsing: boolean;
 }
 
@@ -35,7 +34,7 @@ const tabs = [
   { label: "JSON", value: DisplayType.json, icon: <CodeIcon/> },
 ];
 
-const ExploreLogsBody: FC<ExploreLogBodyProps> = ({ data, loaded, markdownParsing }) => {
+const ExploreLogsBody: FC<ExploreLogBodyProps> = ({ data, markdownParsing }) => {
   const { isMobile } = useDeviceDetect();
   const { timezone } = useTimeState();
   const { setSearchParamsFromKeys } = useSearchParamsFromObject();
@@ -48,7 +47,7 @@ const ExploreLogsBody: FC<ExploreLogBodyProps> = ({ data, loaded, markdownParsin
     ...item,
     _vmui_time: item._time ? dayjs(item._time).tz().format(`${DATE_TIME_FORMAT}.SSS`) : "",
     _vmui_data: JSON.stringify(item, null, 2),
-    _vmui_markdown: marked(item._msg.replace(/```/g, "\n```\n")) as string,
+    _vmui_markdown: item._msg ? marked(item._msg.replace(/```/g, "\n```\n")) as string : ""
   })) as Logs[], [data, timezone]);
 
   const columns = useMemo(() => {
@@ -109,11 +108,7 @@ const ExploreLogsBody: FC<ExploreLogBodyProps> = ({ data, loaded, markdownParsin
           "vm-explore-logs-body__table_mobile": isMobile,
         })}
       >
-        {!data.length && (
-          <div className="vm-explore-logs-body__empty">
-            {loaded ? "No logs found" : "Run query to see logs"}
-          </div>
-        )}
+        {!data.length && <div className="vm-explore-logs-body__empty">No logs found</div>}
         {!!data.length && (
           <>
             {activeTab === DisplayType.table && (
